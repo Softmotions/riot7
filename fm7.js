@@ -291,13 +291,13 @@ function attachRouter(riot, app) {
                 delete view.tagsCache[options.url];
             } else {
                 newTag = riot.mount(Utils.generateCssSelector($mpoint[0]), tagName, options.query)[0];
-                newTag._url = options.url;
                 if (!newTag) {
                     view.allowPageChange = true;
                     var err = 'Failed to mount view tag: ' + tagName;
                     console.error(err);
                     return;
                 }
+                newTag._url = options.url;
                 (function (tag) {
                     tag.on('cache', function () {
                         tag.isCached = true;
