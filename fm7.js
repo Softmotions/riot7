@@ -410,7 +410,12 @@ function attachRouter(riot, app) {
                         Object.keys(view.tag.tags).forEach(function (tn) {
                             var t = view.tag.tags[tn];
                             if (t) {
-                                t.trigger('suspend')
+                                if (!Array.isArray(t)) {
+                                    t = [t];
+                                }
+                                t.forEach(function(t) {
+                                    t.trigger('suspend')
+                                });
                             }
                         });
                     } else {
@@ -427,7 +432,12 @@ function attachRouter(riot, app) {
                 Object.keys(newTag.tags).forEach(function (tn) {
                     var t = newTag.tags[tn];
                     if (t) {
-                        t.trigger('activate')
+                        if (!Array.isArray(t)) {
+                            t = [t];
+                        }
+                        t.forEach(function(t) {
+                            t.trigger('activate')
+                        });
                     }
                 });
             }
