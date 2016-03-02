@@ -230,7 +230,14 @@ function maskedInput(domEl, opts) {
             return mask[pos] === char;
         }
         var charRule = charsRules[mask[pos]];
-        return (new RegExp(charRule)).test(char || '') || (allowMaskChar && char === maskChar);
+        var ret = (new RegExp(charRule)).test(char || '') || (allowMaskChar && char === maskChar);
+        if (ret && opts.filterFn && typeof opts.filterFn === 'function'
+                && char != null && char != '' && !/\s/.test(char)) {
+            if (!opts.filterFn(char, pos, $input[0].value)) {
+                return false;
+            }
+        }
+        return ret;
     }
 
     function isPermanentChar(pos) {
@@ -849,5 +856,37 @@ module.exports = {
 
     createTakePhotoFn,
 
-    maskedInput
+    maskedInput,
+
+    /**
+     * Empiric conversion of th given
+     * string into Date object.
+     *
+     * @param {String} sdate
+     * @return {Date}
+     */
+    toDate(sdate) {
+        if (sdate == null || (sdate instanceof Date)) {
+            return sdate;
+        }
+        sdate = sdate.trim();
+        if (sdate == '') {
+            return null;
+        }
+        var dp;
+        if (/^\d{2}\.\d{2}\.\d{4}$/.test(sdate)) {
+            dp = sdate.split('.');
+            [dp[0], dp[1], dp[2]] = [dp[2], dp[1], dp[0]];
+        } else if (/^\d{4}\-\d{2}\-\d{2}$/.test(sdate)) {
+            dp = sdate.split('-');
+        } else if (/^\d{2}\-\d{2}\-\d{4}$/.test(sdate)) {
+            dp = sdate.split('-');
+            [dp[0], dp[1], dp[2]] = [dp[2], dp[0], dp[1]];
+        }
+        if (dp) {
+            return new Date(dp.join('-')); // UTC
+        } else {
+            return null;
+        }
+    }
 };

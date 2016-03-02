@@ -320,10 +320,11 @@ module.exports = function (app, params) {
         if (Utils.isBlank(date)) {
             return true;
         }
-        if (!(/^\d{4}\-\d{2}\-\d{2}$/.test(date))) {
-            return false;
+        date = Utils.toDate(date);
+        if (date == null) {
+            return true;
         }
-        var diff = new Date() - new Date(/* we are in UTC */ date.replace(/\-/g, '/'));
+        var diff = new Date() - date;
         range = range.split('-');
         var min = parseInt(range[0]), max = parseInt(range[1]);
         if (isNaN(min) || isNaN(max)) {
@@ -348,7 +349,7 @@ module.exports = function (app, params) {
         dateField = dateField || 'passportIssueDate';
         var issueDate, dateEl = this.form[dateField];
         if (dateEl && dateEl.value && dateEl.value != '') {
-            issueDate = new Date(dateEl.value.replace(/\-/g, '/'));
+            issueDate = Utils.toDate(dateEl.value);
         }
         var seriesFirstHalf = sn.substring(0, 2),
                 seriesSecondHalf = sn.substring(2, 4),
@@ -376,6 +377,31 @@ module.exports = function (app, params) {
             }
         }
         return true;
+    };
+
+    FormValidator.prototype._hooks['date'] = function (field) {
+        var value = field.value;
+        if (Utils.isBlank(value)) {
+            return true;
+        }
+        value = value.trim();
+        var d = Utils.toDate(value);
+        if (!d || !/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
+            return false;
+        }
+        var pd = value.split('.').map(function (v) {
+            return parseInt(v);
+        });
+        return (pd[0] == d.getDate() && pd[1] == d.getMonth() + 1 && pd[2] == d.getFullYear());
+    };
+
+    FormValidator.prototype._hooks['past'] = function (field) {
+        var value = field.value;
+        var d = Utils.toDate(value);
+        if (!d) {
+            return true;
+        }
+        return (new Date() - d > 0)
     };
 
 
@@ -406,7 +432,9 @@ module.exports = function (app, params) {
             is_natural_no_zero: 'Поле \'%s\' должно содержать только положительные числа',
             valid_ip: 'В поле \'%s\' должен быть введен IP адрес',
             valid_credit_card: 'Поле \'%s\' должно содержать номер кредитной карточки',
-            valid_url: 'Поле \'%s\' не содержит адрес интернет ресурса (URL)'
+            valid_url: 'Поле \'%s\' не содержит адрес интернет ресурса (URL)',
+            date: 'Поле \'%s\' содержит некорректную дату',
+            past: 'Дата в поле \'%s\' должна быть в прошлом'
         };
         return this;
     };
@@ -462,7 +490,6 @@ module.exports = function (app, params) {
         (input.hasAttribute('readonly') && !input.hasAttribute('data-validate-readonly')));
     }
 
-
     function attachMaskedInputs($root) {
         $root.find('input[data-mask]').each(function () {
             var $input = $(this), val;
@@ -473,8 +500,53 @@ module.exports = function (app, params) {
             if (val && val.length) {
                 opts.maskChar = val;
             }
+            val = $input.attr('data-mask-date');
+            if (val) {
+                opts.mask = '99.99.9999';
+                opts.filterFn = filterDate;
+
+            }
             Utils.maskedInput($input[0], opts);
         });
+
+
+        function filterDate(char, pos, val) {
+            if (!val) {
+                return true;
+            }
+            if (isNaN(char = parseInt(char))) {
+                return false;
+            }
+            var nval = val.substring(0, pos) + char + val.substring(pos + 1);
+            var n;
+            if (pos < 2) {
+                n = parseInt(nval.substring(0, 2));
+                if (isNaN(n) || ((n < 1 || n > 31) && pos > 0) || (pos < 1 && char > 3)) {
+                    return false;
+                }
+            } else if (pos < 5) {
+                n = parseInt(nval.substring(3, 5));
+                if (isNaN(n) || (pos < 4 && char > 1) || (pos > 3 && (n < 1 || n > 12))) {
+                    return false;
+                }
+            } else if (pos < 10) {
+                // 1 2
+                if (pos == 6) {
+                    return (char == 1 || char == 2);
+                }
+                // 19 20
+                if (pos == 7) {
+                    n = parseInt(nval.substring(6, 8));
+                    return (!isNaN(n) && n > 18 && n < 21);
+                }
+                // 193 201
+                if (pos == 8) {
+                    n = parseInt(nval.substring(6, 9));
+                    return (!isNaN(n) && n > 192 && n < 202);
+                }
+            }
+            return true;
+        }
     }
 
     function attach($root) {
@@ -539,7 +611,7 @@ module.exports = function (app, params) {
                         if (window.Keyboard) {
                             window.Keyboard.hide();
                         }
-                        window.setTimeout(function() {
+                        window.setTimeout(function () {
                             inputs[idx + 1].focus();
                         });
                     }
@@ -610,7 +682,6 @@ module.exports = function (app, params) {
                         form = e.currentTarget,
                         v = data.v,
                         success = (e.type === 'valid');
-
 
 
                 Object.keys(v.fields).forEach(function (fname) {
