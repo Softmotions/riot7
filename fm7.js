@@ -413,7 +413,7 @@ function attachRouter(riot, app) {
                                 if (!Array.isArray(t)) {
                                     t = [t];
                                 }
-                                t.forEach(function(t) {
+                                t.forEach(function (t) {
                                     t.trigger('suspend')
                                 });
                             }
@@ -435,7 +435,7 @@ function attachRouter(riot, app) {
                         if (!Array.isArray(t)) {
                             t = [t];
                         }
-                        t.forEach(function(t) {
+                        t.forEach(function (t) {
                             t.trigger('activate')
                         });
                     }
