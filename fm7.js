@@ -243,11 +243,10 @@ function attachRouter(riot, app) {
         }
     };
 
-    app.router._load = function (view, options) {
+    app.router._load = function (view, options, resolve, reject) {
         view.tagsCache = view.tagsCache || {};
         options = options || {};
         var url = options.url,
-                pageName = options.pageName,
                 pagesContainer = $(view.pagesContainer),
                 animatePages = (options.animatePages == null ? view.params.animatePages : !!options.animatePages),
                 newPage, oldPage, i,
@@ -258,6 +257,7 @@ function attachRouter(riot, app) {
         if (view.tag && typeof view.tag.preroute === 'function') {
             if (!options.force && view.tag.preroute(view, options) === false) {
                 view.allowPageChange = true;
+                reject('Page loading was canceled due to current view.tag.preroute callback');
                 return;
             }
         }
@@ -295,6 +295,7 @@ function attachRouter(riot, app) {
                     view.allowPageChange = true;
                     var err = 'Failed to mount view tag: ' + tagName;
                     console.error(err);
+                    reject(err);
                     return;
                 }
                 newTag._url = options.url;
@@ -441,6 +442,8 @@ function attachRouter(riot, app) {
                     }
                 });
             }
+
+            resolve(view);
         }
 
         if (pageForward) {        // FORWARD
@@ -504,21 +507,29 @@ function attachRouter(riot, app) {
         }
     };
 
+
+    /**
+     * Load view page.
+     *
+     * @param view
+     * @param options
+     * @returns {Promise} Promise containing success of fail loading status.
+     */
     app.router.load = function (view, options) {
         if (!view.allowPageChange) {
-            return false;
+            return Promise.reject('View page change is locked');
         }
         options = options || {};
         if (options.content != null) {
             console.log('Trying to load content: ' + options.content);
-            throw new Error('Router does not support loading of content');
+            return Promise.reject('Router does not support loading of content');
         }
         if (options.pageName) {
             options.url = options.pageName;
             delete options.pageName;
         }
         if (!options.url) {
-            return false;
+            return Promise.reject('Only url or pageName can be used as view load options');
         }
         var ret = Utils.normalizeTagUrl(options.url);
         options.tagName = ret.url;
@@ -526,15 +537,17 @@ function attachRouter(riot, app) {
         if (options.url
                 && view.url === options.url
                 && !view.params.allowDuplicateUrls) {
-            return false;
+            return Promise.resolve(view);
         }
-        app.router.preroute(view, options, (err) => {
-            if (!err) {
-                view.allowPageChange = false;
-                app.router._load(view, options);
-            }
+
+        return new Promise(function (resolve, reject) {
+            app.router.preroute(view, options, (err) => {
+                if (!err) {
+                    view.allowPageChange = false;
+                    app.router._load(view, options, resolve, reject);
+                }
+            });
         });
-        return true;
     };
 
     app.router.back = function (view, options) {

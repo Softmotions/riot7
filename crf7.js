@@ -93,7 +93,11 @@ class App {
         $(document).on('backbutton', (e) => {
             this.onBack();
             e.preventDefault();
-        }, false)
+        }, false);
+
+        this.one('init',() => {
+            this.ready = true;
+        })
     }
 
     onBack() {
