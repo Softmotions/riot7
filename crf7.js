@@ -341,11 +341,8 @@ class App {
         this.checks();
         // Riot tags mixins
         riot.mixin('AppTag', function () {
-            this.init = function () {
-                this.app = app;
-                this.tr = function (msg) {
-                    return app.translate(msg);
-                }
+            this.init = function() {
+                app.initAppTagMixin(this);
             }
         });
         // F7 initialization
@@ -372,6 +369,13 @@ class App {
         if (!this.messagesTag) {
             this.messagesTag = riot.mount('messages')[0];
         }
+    }
+
+    initAppTagMixin(mixin) {
+        mixin.app = app;
+        mixin.tr = (msg) => {
+            return this.translate(msg);
+        };
     }
 }
 
