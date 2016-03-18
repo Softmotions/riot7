@@ -819,7 +819,7 @@ module.exports = {
     },
 
     isBlank(str) {
-        return str != null ? !!str.match(/^\s*$/) : true;
+        return str != null ? ((str.length === 0) || !!str.match(/^\s*$/)) : true;
     },
 
     isDataUrl(url) {

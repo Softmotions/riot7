@@ -93,7 +93,11 @@ class App {
         $(document).on('backbutton', (e) => {
             this.onBack();
             e.preventDefault();
-        }, false)
+        }, false);
+
+        this.one('init', () => {
+            this.ready = true;
+        })
     }
 
     onBack() {
@@ -239,6 +243,24 @@ class App {
         return ret === msg ? def : ret;
     }
 
+
+    /**
+     * Perform GET AJAX request.
+     * @param {?string} url Resource URL
+     * @param {!object} options Extra request options
+     * @returns {Promise}
+     */
+    ajaxGET(url, options) {
+        options = Object.assign({}, options);
+        options.url = url;
+        return this.ajax(options);
+    }
+
+    /**
+     * Perform AJAX request.
+     * @param options Ajax request options
+     * @returns {Promise}
+     */
     ajax(options) {
         console.log('AJAX: ' + options.url);
         if (!options.url) {
