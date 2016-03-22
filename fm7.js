@@ -427,24 +427,27 @@ function attachRouter(riot, app) {
                 view.tag = newTag;
             }
 
-            if (newTag) {
-                newTag.trigger('activate');
-                //todo propagate suspend event recursive!
-                Object.keys(newTag.tags).forEach(function (tn) {
-                    var t = newTag.tags[tn];
-                    if (t) {
-                        if (!Array.isArray(t)) {
-                            t = [t];
-                        }
-                        t.forEach(function (t) {
-                            t.trigger('activate')
-                        });
-                    }
-                });
-            }
 
             resolve(view);
         }
+
+
+        if (newTag) {
+            newTag.trigger('activate');
+            //todo propagate suspend event recursive!
+            Object.keys(newTag.tags).forEach(function (tn) {
+                var t = newTag.tags[tn];
+                if (t) {
+                    if (!Array.isArray(t)) {
+                        t = [t];
+                    }
+                    t.forEach(function (t) {
+                        t.trigger('activate')
+                    });
+                }
+            });
+        }
+
 
         if (pageForward) {        // FORWARD
 

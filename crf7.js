@@ -155,11 +155,10 @@ class App {
             if (this.sysopts['messagesReportConsole']) {
                 console.warn(err.toString());
             }
-            if (this.sysopts['messagesReportGUI']) {
+            if (this.messagesTag && this.sysopts['messagesReportGUI']) {
                 this.messages = err;
                 this.messagesTag.update();
                 this.popup('#messages');
-                //this.pickerModal('#messages');
             }
         } else {
             console.error(`Application error: ${err}\nAction: ${action}`);

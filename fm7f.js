@@ -271,7 +271,7 @@ module.exports = function (app, params) {
     };
 
     FormValidator.prototype.validateForm = function (e) {
-        return this._validateForm(e);
+        return this._validateForm(e || {});
     };
 
     //Улучшенный required
