@@ -185,22 +185,74 @@ class FormSerializer {
 
 module.exports = function (app, params) {
 
+    FormValidator.prototype._validateForm = function(evt) {
+        function attributeValue(element, attributeName) {
+            var i;
+            if ((element.length > 0) && (element[0].type === 'radio' || element[0].type === 'checkbox')) {
+                for (i = 0, elementLength = element.length; i < elementLength; i++) {
+                    if (element[i].checked) {
+                        return element[i][attributeName];
+                    }
+                }
+                return;
+            }
+            return element[attributeName];
+        }
+
+        this.errors = [];
+        for (var key in this.fields) {
+            if (this.fields.hasOwnProperty(key)) {
+                var field = this.fields[key] || {},
+                        element = this.form[field.name];
+                if (element && element !== undefined) {
+                    field.id = attributeValue(element, 'id');
+                    field.element = element;
+                    field.type = (element.length > 0) ? element[0].type : element.type;
+                    field.value = attributeValue(element, 'value');
+                    field.checked = attributeValue(element, 'checked');
+                    if (field.depends && typeof field.depends === "function") {
+                        if (field.depends.call(this, field)) {
+                            this._validateField(field);
+                        }
+                    } else if (field.depends && typeof field.depends === "string" && this.conditionals[field.depends]) {
+                        if (this.conditionals[field.depends].call(this,field)) {
+                            this._validateField(field);
+                        }
+                    } else {
+                        this._validateField(field);
+                    }
+                }
+            }
+        }
+        if (typeof this.callback === 'function') {
+            this.callback(this.errors, evt);
+        }
+        if (this.errors.length > 0) {
+            if (evt && evt.preventDefault) {
+                evt.preventDefault();
+            }
+        }
+        return true;
+    };
+
     FormValidator.prototype.inputErrors = function (input) {
         if (input == null) {
             return this.errors;
         } else if (typeof input.tagName === 'string') {
             input = $(input);
         }
-        if (typeof input.attr === 'function') {
-            input = input.attr('name');
+        if (input[0] && typeof input[0].getAttribute === 'function') {
+            input = input[0].getAttribute('name') || '';
         }
         return this.errors.filter(function (e) {
             return (e.name === input);
         });
     };
+
     FormValidator.registerRule = function (name, hook) {
         FormValidator.prototype._hooks[name] = hook;
     };
+
     FormValidator.prototype._validateField = function (field) {
         var i, j, ruleLength,
                 existingError,
