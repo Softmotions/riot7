@@ -151,6 +151,9 @@ class App {
         if (this.opts.get('errors.hide')) {
             err = null;
         }
+        if (err != null && typeof err === 'object' && 'messages' in err) {
+            err = err['messages'];
+        }
         if (err instanceof Messages) {
             if (this.sysopts['messagesReportConsole']) {
                 console.warn(err.toString());
@@ -281,7 +284,7 @@ class App {
                     messages.report();
                 }
                 if (messages.numErrors) {
-                    reject(messages);
+                    reject({messages, xhr});
                 } else {
                     resolve({
                         data,
@@ -296,7 +299,7 @@ class App {
                 if (reportMessages) {
                     messages.report();
                 }
-                reject(messages);
+                reject({messages, xhr});
             };
 
             function checkResponse(xhr, status, err) {
@@ -352,6 +355,7 @@ class App {
         this.showPreloader(action);
         return promise.catch((err) => {
             this.reportError(err, action);
+            return err;
         }).finally(() => {
             this.hidePreloader();
         });
@@ -362,7 +366,7 @@ class App {
         this.checks();
         // Riot tags mixins
         riot.mixin('AppTag', function () {
-            this.init = function() {
+            this.init = function () {
                 app.initAppTagMixin(this);
             }
         });
