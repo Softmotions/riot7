@@ -2,8 +2,7 @@
 //                    Framework7 forms plugin                            //
 ///////////////////////////////////////////////////////////////////////////
 
-var
-        Utils = require('./utils'),
+const Utils = require('./utils'),
         $ = require('Dom7'),
         FormValidator = require('validate-js');
 
@@ -185,7 +184,7 @@ class FormSerializer {
 
 module.exports = function (app, params) {
 
-    FormValidator.prototype._validateForm = function(evt) {
+    FormValidator.prototype._validateForm = function (evt) {
         function attributeValue(element, attributeName) {
             var i;
             if ((element.length > 0) && (element[0].type === 'radio' || element[0].type === 'checkbox')) {
@@ -215,7 +214,7 @@ module.exports = function (app, params) {
                             this._validateField(field);
                         }
                     } else if (field.depends && typeof field.depends === "string" && this.conditionals[field.depends]) {
-                        if (this.conditionals[field.depends].call(this,field)) {
+                        if (this.conditionals[field.depends].call(this, field)) {
                             this._validateField(field);
                         }
                     } else {
@@ -328,7 +327,7 @@ module.exports = function (app, params) {
 
     //Улучшенный required
     FormValidator.prototype._hooks['required'] = function (field) {
-        var value = field.value;
+        const value = field.value;
         if ((field.type === 'checkbox') || (field.type === 'radio')) {
             return (field.checked === true);
         }
@@ -337,7 +336,7 @@ module.exports = function (app, params) {
 
     //ФИО на русском языке
     FormValidator.prototype._hooks['cyrillicFio'] = function (field) {
-        var value = field.value;
+        const value = field.value;
         if (Utils.isBlank(value)) {
             return true;
         }
@@ -346,7 +345,7 @@ module.exports = function (app, params) {
 
     //Поле на русском языке
     FormValidator.prototype._hooks['cyrillic'] = function (field) {
-        var value = field.value;
+        const value = field.value;
         if (Utils.isBlank(value)) {
             return true;
         }
@@ -355,7 +354,7 @@ module.exports = function (app, params) {
 
     FormValidator.prototype._hooks['pattern'] = function (field, attr) {
         attr = attr || 'data-validate-pattern-value';
-        var value = field.value;
+        const value = field.value;
         if (Utils.isBlank(value)) {
             return true;
         }
@@ -456,6 +455,36 @@ module.exports = function (app, params) {
         return (new Date() - d > 0)
     };
 
+    FormValidator.prototype._hooks['email'] = function (field) {
+        const value = field.value;
+        const tester = new RegExp("^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Zа-яА-ЯёЁ0-9](-?\.?[a-zA-Zа-яА-ЯёЁ0-9])*(\.[a-zA-Zа-яА-ЯёЁ](-?[a-zA-Zа-яА-ЯёЁ0-9])*)+$");
+        if (Utils.isBlank(value)) {
+            return true;
+        }
+        function validate(email) {
+            if (!email)
+                return false;
+
+            if (email.length > 254)
+                return false;
+
+            var valid = tester.test(email);
+            if (!valid)
+                return false;
+
+            // Further checking of some things regex can't handle
+            var parts = email.split('@');
+            if (parts[0].length > 64)
+                return false;
+
+            var domainParts = parts[1].split('.');
+            return !domainParts.some(function (part) {
+                return part.length > 63;
+            });
+        }
+        return validate(value);
+    };
+
 
     FormValidator.prototype.setRUMessages = function () {
         this.messages = {
@@ -467,8 +496,7 @@ module.exports = function (app, params) {
             required: 'Поле \'%s\' является обязательным',
             matches: 'Поле \'%s\' не соответствует полю \'%s\'',
             "default": 'Поле \'%s\' установлено по умолчанию, пожулейста измените его',
-            valid_email: 'Поле \'%s\' не является валидным email адресом',
-            valid_emails: 'В поле \'%s\' не является валидным email адресом (адресами)',
+            email: 'Поле \'%s\' не является валидным email адресом',
             min_length: 'Поле \'%s\' должно содержать по меньшей мере \'%s\' символов',
             max_length: 'Количество символов в поле \'%s\' превышает максимально допустимые \'%s\' символов',
             exact_length: 'Длина поля \'%s\' должна быть ровно \'%s\' символов',
