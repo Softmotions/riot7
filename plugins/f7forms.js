@@ -2,7 +2,7 @@
 //                    Framework7 forms plugin                            //
 ///////////////////////////////////////////////////////////////////////////
 
-const Utils = require('./utils'),
+const Utils = require('./../utils'),
         $ = require('Dom7'),
         FormValidator = require('validate-js');
 

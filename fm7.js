@@ -342,6 +342,20 @@ function attachRouter(riot, app) {
             });
         }
 
+        function propagateTagEvent(tag, ...args) {
+            tag.trigger.apply(tag, args);
+            Object.keys(tag.tags).forEach(function (tn) {
+                var t = tag.tags[tn];
+                if (t) {
+                    if (!Array.isArray(t)) {
+                        t = [t];
+                    }
+                    t.forEach(function (t) {
+                        propagateTagEvent.apply(this, [].concat(t, args));
+                    });
+                }
+            });
+        }
 
         function afterAnimation() {
             view.allowPageChange = true;
@@ -406,19 +420,7 @@ function attachRouter(riot, app) {
                                 'page-from-center-to-left ' +
                                 'page-on-right page-on-left');
                         view.tagsCache[view.tag._url] = view.tag;
-                        view.tag.trigger('suspend');
-                        //todo propagate suspend event recursive!
-                        Object.keys(view.tag.tags).forEach(function (tn) {
-                            var t = view.tag.tags[tn];
-                            if (t) {
-                                if (!Array.isArray(t)) {
-                                    t = [t];
-                                }
-                                t.forEach(function (t) {
-                                    t.trigger('suspend')
-                                });
-                            }
-                        });
+                        propagateTagEvent(view.tag, 'suspend');
                     } else {
                         app.pageRemoveCallback(view, view.tag.root, pageForward ? 'left' : 'right');
                         view.tag.unmount();
@@ -426,28 +428,12 @@ function attachRouter(riot, app) {
                 }
                 view.tag = newTag;
             }
-
-
             resolve(view);
         }
 
-
         if (newTag) {
-            newTag.trigger('activate');
-            //todo propagate suspend event recursive!
-            Object.keys(newTag.tags).forEach(function (tn) {
-                var t = newTag.tags[tn];
-                if (t) {
-                    if (!Array.isArray(t)) {
-                        t = [t];
-                    }
-                    t.forEach(function (t) {
-                        t.trigger('activate')
-                    });
-                }
-            });
+            propagateTagEvent(newTag, 'activate');
         }
-
 
         if (pageForward) {        // FORWARD
 
@@ -627,49 +613,12 @@ function application(riot, opts) {
     return app;
 }
 
-// Activate forms processing plugin
-Framework7.prototype.plugins.fm7f = require('./fm7f');
-
-// Keyboard fixes.
-// See http://forum.framework7.io/#!/getting-started:pure-js-fix-for-device-scr
-Framework7.prototype.plugins.fm7KBFixes = function (app, params) {
-    function handleAppInit() {
-        //try to implement js fix for input/text area and mobile screen keyboard
-        //use class or element name
-        //$(document).on("focus","input,textarea", function(e){
-        $(document).on("focus", ".kbdfix", function (e) {
-            var el = $(e.target);
-            var page = el.closest(".page-content");
-            var elTop = el.offset().top;
-            //do correction if input at near or below middle of screen
-            if (elTop > page.height() / 2 - 20) {
-                var delta = page.offset().top + elTop - $(
-                                ".statusbar-overlay").height() * (myApp.device.ios ? 2 : 1) - $(".navbar").height(); //minus navbar height?&quest;? 56 fot MD
-                var kbdfix = page.find("#keyboard-fix");
-                if (kbdfix.length == 0) { //create kbdfix element
-                    page.append("<div id='keyboard-fix'></div>");
-                }
-
-                $("#keyboard-fix").css("height", delta * 2 + "px");
-                page.scrollTop(delta, 300);
-
-            }
-        }, true);
-
-        //$(document).on("blur","input,textarea", function(e){
-        //call this code in the Back button handler - when it fired for keyboard hidding.
-        $(document).on("blur", ".kbdfix", function (e) {
-            //reduce all fixes
-            $("#keyboard-fix").css("height", "0px");
-        }, true);
-    }
-
-    return {
-        hooks: {
-            appInit: handleAppInit
-        }
-    };
-};
+// Forms processing plugin
+Framework7.prototype.plugins.fm7forms = require('./plugins/f7forms');
+// Searchbar plugin
+Framework7.prototype.plugins.fm7searchbar = require('./plugins/f7searchbar');
+// Keyboard fix
+Framework7.prototype.plugins.f7kbfix = require('./plugins/f7kbfix');
 
 module.exports = {
     attachRouter: attachRouter,
