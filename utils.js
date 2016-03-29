@@ -181,7 +181,7 @@ function createTakePhotoFn(root, opts) {
         } else {
             $photoRoot.children().remove();
             if (device.platform === 'browser') {
-                onSuccess.attachTo = $photoRoot[0];
+                opts.attachTo = root;
             }
             function onSuccess(imageData) {
                 $photoRoot.children().remove();
