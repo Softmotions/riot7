@@ -349,7 +349,7 @@ module.exports = function (app, params) {
         if (Utils.isBlank(value)) {
             return true;
         }
-        return (/^[0-9а-яА-ЯёЁ\.\-\s]+$/.test(value.trim()))
+        return (/^[0-9а-яА-ЯёЁ\.\-\/\s]+$/.test(value.trim()))
     };
 
     FormValidator.prototype._hooks['pattern'] = function (field, attr) {
