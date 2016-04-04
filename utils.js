@@ -325,7 +325,11 @@ module.exports = {
             let d = new Date(dp.join('-')); // UTC
             return time ? d.getTime() : d;
         } else {
-            return null;
+            let d = new Date(sdate);
+            if (d.toString() === 'Invalid Date') {
+                d = null;
+            }
+            return d;
         }
     },
 
