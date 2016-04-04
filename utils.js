@@ -342,9 +342,26 @@ module.exports = {
     },
 
     toNumber(num) {
-        if (num == null || isNaN(num)) {
+        if (num == null) {
             return null;
         }
-        return parseInt(num);
+        if (typeof num === 'number') {
+           return num;
+        }
+        let mul = 1;
+        if (typeof num === 'string') {
+            if (num.matches(/^\d+[kK]$/)) {
+                mul = 1000;
+                num = num.substring(0, num.length - 1)
+            }
+            if (num.matches(/^\d+[mM]$/)) {
+                mul = 1000000;
+                num = num.substring(0, num.length - 1)
+            }
+        }
+        if (isNaN(num)) {
+            return null;
+        }
+        return parseInt(num) * mul;
     }
 };
