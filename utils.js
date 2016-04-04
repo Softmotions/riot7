@@ -14,10 +14,10 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
 Promise.prototype.finally = function (callback) {
     let p = this.constructor;
     return this.then(
-            value => p.resolve(callback()).then(() => value),
-            reason => p.resolve(callback()).then(() => {
-                throw reason
-            })
+        value => p.resolve(callback()).then(() => value),
+        reason => p.resolve(callback()).then(() => {
+            throw reason
+        })
     );
 };
 
@@ -265,7 +265,7 @@ module.exports = {
         }
         //data:image/png;base64,
         var i, ia, data, prefix, ctype,
-                ind = url.indexOf(',');
+            ind = url.indexOf(',');
         if (ind === -1) {
             return null;
         }
@@ -339,5 +339,12 @@ module.exports = {
      */
     toPhone(phone) {
         return phone != null ? phone.replace(/([\(\)\-\/\s])|(^\+\d)/g, '') : null;
+    },
+
+    toNumber(num) {
+        if (num == null || isNaN(num)) {
+            return null;
+        }
+        return parseInt(num);
     }
 };
