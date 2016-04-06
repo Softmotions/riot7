@@ -43,7 +43,7 @@ class Messages {
     report() {
         if (this.length > 0) {
             //todo use gui?
-            console.log(this.messages);
+            console.error(this.messages);
         }
     }
 

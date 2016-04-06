@@ -350,11 +350,11 @@ module.exports = {
         }
         let mul = 1;
         if (typeof num === 'string') {
-            if (num.matches(/^\d+[kK]$/)) {
+            if (num.match(/^\d+[kK]$/)) {
                 mul = 1000;
                 num = num.substring(0, num.length - 1)
             }
-            if (num.matches(/^\d+[mM]$/)) {
+            if (num.match(/^\d+[mM]$/)) {
                 mul = 1000000;
                 num = num.substring(0, num.length - 1)
             }
