@@ -120,12 +120,6 @@ class App {
                 }
                 return false;
             }
-
-            if (i >= modals.length) {
-                return view.router.back();
-            } else {
-                return true;
-            }
         }
         return false;
     }
