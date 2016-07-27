@@ -386,6 +386,17 @@ module.exports = function (app, params) {
         return (cyear >= min && cyear <= max);
     };
 
+    FormValidator.prototype._hooks['max'] = function (field, attr) {
+        attr = attr || 'data-validate-max-value';
+        const value = field.value.trim();
+        var limit = field.element.getAttribute(attr);
+        if (Utils.isBlank(value)) {
+            return true;
+        }
+
+        return parseInt(value) < parseInt(limit);
+    };
+
     FormValidator.prototype._hooks['passport'] = function (field, dateField) {
         var sn = field.element.value;
         if (sn) {
