@@ -496,6 +496,37 @@ module.exports = function (app, params) {
         return validate(value);
     };
 
+    //СНИЛС
+    FormValidator.prototype._hooks['snils'] = function (field) {
+        var value = field.value;
+        if (value) {
+            value = value.replace(/[\s-]/g, '').trim();
+        }
+        if (Utils.isBlank(value)) {
+            return true;
+        }
+
+        if (!/^[0-9]{11}$/.test(value)) {
+            return false;
+        }
+        var controlDigits = parseInt(value.substring(9));
+        var SNILSnumber = value.substring(0, 9);
+        if (SNILSnumber === '000000000') {
+            return false;
+        }
+        var numberArray = SNILSnumber.split('');
+        var checksum = 0;
+        for (var i = 0; i < 9; ++i) {
+            checksum += numberArray[i] * (9 - i);
+        }
+        if (checksum >= 101) {
+            checksum %= 101;
+        }
+        if (checksum == 100) {
+            checksum = 0;
+        }
+        return (checksum == controlDigits);
+    };
 
     FormValidator.prototype.setRUMessages = function () {
         this.messages = {
@@ -525,7 +556,8 @@ module.exports = function (app, params) {
             valid_credit_card: 'Поле \'%s\' должно содержать номер кредитной карточки',
             valid_url: 'Поле \'%s\' не содержит адрес интернет ресурса (URL)',
             date: 'Поле \'%s\' содержит некорректную дату',
-            past: 'Дата в поле \'%s\' должна быть в прошлом'
+            past: 'Дата в поле \'%s\' должна быть в прошлом',
+            snils: 'Некорректное значение СНИЛС'
         };
         return this;
     };
